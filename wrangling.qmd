@@ -106,3 +106,153 @@ tidy4a <- table4a %>%
                values_to = "cases")
 tidy4a
 ```
+
+```{r}
+tidy4a <- table4a %>% 
+  pivot_longer(cols = -country,
+               names_to = "year", 
+               values_to = "cases")
+tidy4a
+```
+
+```{r}
+#| paged.print: false
+table4b
+```
+
+```{r}
+#| paged.print: false
+tidy4b <- table4b %>% 
+  pivot_longer(
+    cols = -country,
+    names_to = "year",
+    values_to = "pop"
+  )
+tidy4b
+```
+
+```{r}
+#| paged.print: false
+tidy4 <- tidy4a %>% 
+  left_join(tidy4b, by = c("country", "year"))
+tidy4
+```
+
+```{r}
+#| paged.print: false
+table2
+```
+
+```{r}
+#| paged.print: false
+tidy2 <- table2 %>% 
+  pivot_wider(names_from = type,
+              values_from = count)
+tidy2
+```
+
+```{r}
+#| paged.print: false
+table3
+```
+
+```{r}
+#| paged.print: false
+tidy3 <- table3 %>% 
+  separate(col = rate,
+           into = c("cases", "pop"),
+           sep = "/",
+           convert = TRUE
+           )
+# cases and pop now int, not chr
+tidy3[1:5,]
+```
+
+```{r}
+#| paged.print: false
+tidy3century <- tidy3 %>% 
+  separate(col = year,
+           into = c("century", "year"),
+           sep = 2
+           )
+tidy3century
+```
+
+```{r}
+#| paged.print: false
+tidy3century %>% 
+  unite(
+    col = "year",
+    century, year, # the columns we want to unite
+    sep = "" # what happens witout sep?
+  )
+```
+
+```{r}
+#| paged.print: false
+stocks <- tibble(
+  year   = c(2015, 2015, 2015,
+           2015, 2016, 2016, 2016),
+  qtr    = c( 1, 2, 3,
+           4, 2, 3, 4),
+  return = c(1.88, 0.59, 0.35,
+             NA, 0.92, 0.17, 2.66)
+)
+stocks
+```
+
+```{r}
+#| paged.print: false
+stocks_wider <- stocks %>% 
+  pivot_wider(
+    names_from = year,
+    values_from = return
+    )
+stocks_wider
+```
+
+```{r}
+#| paged.print: false
+stocks_wider %>% 
+  pivot_longer(
+    cols = -qtr,
+    names_to = "year", # in quote since it does not exist yet
+    values_to = "return",
+    values_drop_na = TRUE
+  ) %>% 
+  arrange(year, qtr)
+```
+
+```{r}
+#| paged.print: false
+stocks %>%
+  complete(year, qtr)
+```
+
+```{r}
+#| paged.print: false
+treatment <- tribble(
+  ~ person,           ~ treatment, ~response,
+  "Derrick Whitmore", 1,           7,
+  NA,                 2,           10,
+  NA,                 3,           9,
+  "Katherine Burke",  1,           4
+)
+treatment
+```
+
+```{r}
+#| paged.print: false
+treatment %>% 
+  fill(person, .direction = c("down"))
+```
+
+```{r}
+#| paged.print: false
+treatment %>% 
+  fill(person, .direction = c("up"))
+```
+
+```{r}
+View(who)
+```
