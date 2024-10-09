@@ -77,6 +77,18 @@ str_extract(z, pattern = "[:alpha:]?(\\d*)", group = 1)
 ```
 
 ```{r}
+paste(z, collapse = "")
+```
+
+```{r}
+paste0(z, collapse = "_")
+```
+
+```{r}
 # tidyverse version of paste0()
 z <- str_c(z, collapse = ""); z
+```
+
+```{r}
+str_match_all(z, pattern = "(\\d+)[a,b]+\\d+([:alpha:]+)(.*)")
 ```
