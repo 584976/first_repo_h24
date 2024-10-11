@@ -1,0 +1,165 @@
+---
+title: "Date and time"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(lubridate)
+```
+
+```{r}
+# nine eleven
+us_date <- "9-11-2001"
+no_date <- "11/9/2001"
+typeof(us_date)
+```
+
+```{r}
+us_d <- mdy(us_date)
+no_d <- dmy(no_date)
+```
+
+```{r}
+month(no_d, label = TRUE, abbr = TRUE, locale = "no_NO")
+```
+
+```{r}
+month(us_d, label = TRUE, abbr = TRUE, locale = "no_NO")
+```
+
+```{r}
+us_d == no_d
+```
+
+```{r}
+us_date_time <- 09112001202020
+no_date_time <- "11/9/2001 20:20:20"
+mdy_hms(us_date_time) ## mdy = month/day/year, hms = hour/minute/second
+```
+
+```{r}
+dmy_hms(no_date_time)
+```
+
+```{r}
+as.numeric(dmy_hms(01011970000001)) ## 01/01/1970 00:00:01, 1 sekund
+```
+
+```{r}
+#| paged.print: false
+set.seed(1234)
+my_dates <- tibble(
+  y = 1999:2008,
+  m = sample(1:12, size = 10, replace = TRUE),
+  # make it simple, seed 1234 gives no impossible date
+  d = sample(1:31, size = 10, replace = TRUE)
+)
+my_dates
+```
+
+```{r}
+my_dates <- my_dates %>% 
+  mutate(
+    date = make_date(year = y, month = m, day = d),
+    # order do not matter
+    rev_date = make_date(day = d,  month = m, year = y),
+    rev_date2 = format(date, "%d-%m-%y") # now <chr> not date
+    )
+my_dates
+```
+
+```{r}
+#clean up
+my_dates <- my_dates %>% 
+  select(-rev_date, -rev_date2)
+```
+
+```{r}
+now() # date time
+```
+
+```{r}
+# change type
+as_date(now())
+```
+
+```{r}
+my_dates %>%
+  mutate(
+    date_dt = as_datetime(date, tz = "UTC"),
+    date_dt_fl_y = floor_date(date_dt, "year"),
+    date_dt_fl_m = floor_date(date_dt, "month"),
+    date_dt_cl_m = ceiling_date(date_dt, "month")
+  ) %>% 
+  select(date_dt, date_dt_fl_y,
+         date_dt_fl_m, date_dt_cl_m) %>% 
+  glimpse()
+```
+
+```{r}
+my_dates %>%
+  mutate(
+    date_dt = as_datetime(date, tz = "UTC"),
+    # round to start of week Sunday
+    date_dt_fl_w_s = floor_date(date_dt, "week", week_start = getOption("lubridate.week.start", 7)),
+    # round to start of week Monday
+    date_dt_fl_w_m = floor_date(date_dt, "week", week_start = getOption("lubridate.week.start", 1))
+  ) %>%
+  select(date_dt, date_dt_fl_w_s, date_dt_fl_w_m) %>%
+  head(n = 4)
+```
+
+```{r}
+my_life <- function(birthday = "25121964", unit = "weeks") {
+# find the difference between today and birthday measured in unit
+life = as.numeric(difftime(today(), dmy(birthday), units = unit))
+# one case for each unit
+case_when(
+ unit == "weeks" ~ paste("You are about", life, "weeks old."),
+ unit == "days" ~ paste("You are about", life , "days old."),
+ unit == "hours" ~ paste("You are about", life, "hours old."),
+ unit == "mins" ~ paste("You are about", life, "minutes old."),
+ unit == "secs" ~ paste("You are about", life, "seconds old.")
+  )
+}
+my_life() # with default values
+```
+
+```{r}
+my_life <- function(birthday = today(), unit = "years") {
+  stopifnot(unit %in% c("years", "months", "weeks", "days", "hours", "mins", "secs"))
+  life_w = difftime(today(), dmy(birthday), units = "weeks")
+if (as.numeric(life_w)/52.25 < 5) {
+return("You are far too young to learn R!")
+} else if (unit %in% c("years", "months")) {
+  case_when(
+ unit == "years" ~ paste("You are about", round(as.numeric(life_w)/52.25, 2), "years old."),
+ unit == "months" ~ paste("You are about", round(as.numeric(life_w)/(52.25/12), 2), "months old.")
+)
+} else {
+life = round(as.numeric(difftime(today(), dmy(birthday), units = unit)), 0)
+case_when(
+ unit == "weeks" ~ paste("You are about", life, "weeks old."),
+ unit == "days" ~ paste("You are about", life , "days old."),
+ unit == "hours" ~ paste("You are about", life, "hours old."),
+ unit == "mins" ~ paste(
+   "You are about", 
+   formatC(life, format = "f", big.mark = ".",
+           digits = 0, decimal.mark = ","),
+   "minutes old."),
+ unit == "secs" ~ paste(
+   "You are about",
+   formatC(life, format = "f", big.mark = ".",
+           digits = 0, decimal.mark = ","),
+   "seconds old.")
+  )
+}
+}
+```
+
+```{r}
+my_life("01-12-1998", unit = "years")
+```
