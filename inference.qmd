@@ -1,0 +1,82 @@
+---
+title: "Inference"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(car)
+```
+
+```{r}
+summary(lm('mpg ~ wt + disp + fct(as.character(cyl))', data = mtcars))
+```
+
+```{r}
+# check if there is any NA-s for these variables
+crime1 <- wooldridge::crime1
+crime1 |> 
+  select(narr86, pcnv, avgsen, tottime, ptime86, qemp86) %>% 
+  map(.f = function(x) sum(is.na(.))) |> 
+  as_tibble()
+```
+
+```{r}
+# estimate restricted model an get hold of the residuals
+res_restricted <- crime1 %>%
+  lm(
+    formula = 'narr86 ~ pcnv + ptime86 + qemp86',
+    data = .
+  ) |> 
+  residuals()
+```
+
+```{r}
+R_sq <- crime1 %>%
+  lm(
+    formula = 'res_restricted ~ pcnv + avgsen + tottime + ptime86 + qemp86',
+    data = .
+  ) |> 
+  summary() %>%
+  .$r.squared
+
+#LM statistic
+paste("LM statistic:", 
+      round(
+        nrow(crime1) * R_sq,
+        digits = 4
+        ),
+      sep = " "
+      )
+```
+
+```{r}
+qchisq(
+  p = 0.05,
+  df = 2,
+  lower.tail = FALSE
+)
+```
+
+```{r}
+qchisq(
+  p = 0.10,
+  df = 2,
+  lower.tail = FALSE
+)
+```
+
+```{r}
+pchisq(4.0707, df = 2, lower.tail = FALSE)
+```
+
+```{r}
+linearHypothesis(
+  model = lm('narr86 ~ pcnv + avgsen + tottime + ptime86 + qemp86', crime1),
+  hypothesis.matrix = c("avgsen = 0", "tottime = 0")
+) |> 
+  as_flextable() |> 
+  colformat_double(digits = 4)
+```
