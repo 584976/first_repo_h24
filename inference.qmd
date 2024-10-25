@@ -8,6 +8,7 @@ editor: visual
 #| label: setup
 library(tidyverse)
 library(car)
+library(flextable)
 ```
 
 ```{r}
@@ -79,4 +80,35 @@ linearHypothesis(
 ) |> 
   as_flextable() |> 
   colformat_double(digits = 4)
+```
+
+ex-log-log
+
+```{r}
+log_log <- 'log(wage) ~ log(educ) + married * log(educ) + female * log(educ)'
+cat(log_log)
+```
+
+```{r}
+wage1 <- wooldridge::wage1
+
+wage1 |>
+  select(wage, educ, married, female) |>
+  summary()
+```
+
+```{r}
+table(wage1$educ)
+```
+
+```{r}
+wage1 |>
+  select(wage, educ, married, female) |>
+  filter(educ > 0) |>
+  lm(
+    formula = log_log,
+    data = _
+  ) |>
+  as_flextable() |>
+  line_spacing(space = 0.3, part = "body")
 ```
